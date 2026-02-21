@@ -83,7 +83,7 @@
 - [ ] Lambdas and `std::function`
 - [ ] Basic file I/O
 
-**Mini Project**: Build a small text-based game with a game loop, rooms, items, and a player inventory
+**Mini Project**: Build a game launcher that goes into a full-screen menu system. The menu includes a **New Game** option that prompts the user to enter a name via standard I/O, plus placeholders for Load Game and Quit. There will be no real game or graphics usage other than the menu system for this project. We will use this as a foundation for all other c++ or graphics mini projects.
 
 ---
 
