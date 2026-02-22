@@ -18,7 +18,7 @@ programming fundamentals, new to compiled/systems languages.
 - [X] Install MSYS2 and GCC for Windows
 - [X] Install SDL2 via MSYS2: `pacman -S mingw-w64-ucrt-x86_64-SDL2`
 - [X] Understand what a library is — all packaged libraries contain headers (`.h`), which are the contract (what exists), and compiled binaries (`.dll` / `.a`), which are the implementation (how it works). Pre-compiled so you don't rebuild the library every time. SDL2 is just a library for windowing, rendering, input, audio, and networking (via extensions) — the same concept, just a much larger one.
-- [ ] Link SDL2 to your project — the `-l` flag means "link this library." Every time you compile
+- [X] Link SDL2 to your project — the `-l` flag means "link this library." Every time you compile
   you must pass `-lSDL2 -lSDL2main` or the linker won't find SDL2's code and you'll get "undefined
   reference" errors. Full command: `g++ main.cpp -o game.exe -lSDL2 -lSDL2main`
     To avoid retyping this every build, use one of these approaches (in order of complexity):
@@ -31,7 +31,7 @@ programming fundamentals, new to compiled/systems languages.
       and generates the underlying Makefile or Ninja build for you. Handles dependencies,
       multiple files, and cross-platform builds. Used by large C++ projects and Unreal Engine.
 
-  **We are using CMake because it's harder to learn** — the same build system used by large C++ projects and Unreal Engine.
+  **We are using CMake because the other two are so simple** — also the same build system used by large C++ projects and Unreal Engine.
 
   Setup (once):
     1. Install CMake and Ninja via MSYS2:
@@ -192,3 +192,25 @@ and a save file. Shippable as a `.exe`.
 | Date | Notes |
 |------|-------|
 | 2026-02-21 | Roadmap created, roadmap rebuilt around SDL2 |
+
+---
+
+## SDL2 Game Rebuild List
+> Ordered simplest → hardest. Heavy on simple games up front — each one isolates a concept.
+
+### Tier 1 — Rendering & the Game Loop
+Just drawing things and moving them. No real "game" logic yet.
+
+| # | Game | What it teaches |
+|---|------|-----------------|
+| 1 | **Bouncing Ball** | Velocity, wall collision response, `SDL_RenderFillRect` |
+| 2 | **Pong** | Two paddles, ball reflection angle, simple score display |
+| 3 | **Screensaver** (DVD logo bounce) | Multiple objects, color cycling, same collision pattern |
+
+### Tier 2 — Input, State & Simple Rules
+Games where player input drives real logic.
+
+| # | Game | What it teaches |
+|---|------|-----------------|
+| 4 | **Snake** | Grid-based movement, growing list of segments, wrap/death |
+| 5 | **Breakout / Brick Breaker** | Ball vs. grid of bricks, paddle input, level clearing |
