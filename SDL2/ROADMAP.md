@@ -11,7 +11,7 @@ programming fundamentals, new to compiled/systems languages.
 
 ---
 
-## Phase 1: Setup & First Window
+## Step 1: Setup & First Window
 > Get SDL2 running and understand what just happened.
 
 - [X] Understand the compilation pipeline — source → object → executable
@@ -62,7 +62,7 @@ This is your Hello World. Every future project builds on this shell.
 
 ---
 
-## Phase 2: Core C++ in the Game Loop
+## Step 2: Core C++ in the Game Loop
 > The language fundamentals — learned by making the window do things.
 
 - [ ] Variables and primitive types (`int`, `float`, `double`, `bool`, `Uint8`) — used as colors, sizes, flags
@@ -78,7 +78,7 @@ ESC quits. R=Red, G=Green, B=Blue, Space=White. Clean function separation.
 
 ---
 
-## Phase 3: Pointers & Memory — SDL2 Forces You to Learn This
+## Step 3: Pointers & Memory — SDL2 Forces You to Learn This
 > SDL2 uses raw pointers everywhere. You can't avoid this.
 
 - [ ] What a pointer is — `SDL_Window*`, `SDL_Renderer*`, `SDL_Texture*` are all pointers
@@ -95,7 +95,7 @@ ESC quits. R=Red, G=Green, B=Blue, Space=White. Clean function separation.
 
 ---
 
-## Phase 4: OOP — Building a Game Object System
+## Step 4: OOP — Building a Game Object System
 > You know OOP. Learn how C++ does it, and why it matters for games.
 
 - [ ] Classes: fields, methods, access specifiers (`public`, `private`, `protected`)
@@ -110,7 +110,7 @@ subclasses. Each has position, renders a colored rectangle, and moves independen
 
 ---
 
-## Phase 5: STL — Entities, Assets, and Save Files
+## Step 5: STL — Entities, Assets, and Save Files
 > The standard library tools you'll use in every project.
 
 - [ ] `std::vector` — a list of entities, a list of bullets, a list of rooms
@@ -127,7 +127,7 @@ Load Game reads it back. Quit exits. This becomes the shell for all future proje
 
 ---
 
-## Phase 6: 2D Rendering — Sprites, Text, and Animation
+## Step 6: 2D Rendering — Sprites, Text, and Animation
 > Making it look like a real game.
 
 - [ ] Load images with `SDL_image` — PNG/JPG to `SDL_Texture*`
@@ -142,7 +142,7 @@ UI shows player name (loaded from save file) and position in screen corner.
 
 ---
 
-## Phase 7: Game Math & Movement
+## Step 7: Game Math & Movement
 > The math behind every game mechanic.
 
 - [ ] 2D vectors — `Vec2` struct with position, velocity, direction
@@ -157,7 +157,7 @@ can't pass through them. Velocity-based movement, fully delta-time independent.
 
 ---
 
-## Phase 8: Game Architecture & Patterns
+## Step 8: Game Architecture & Patterns
 > Structuring code that can grow without becoming spaghetti.
 
 - [ ] Scene / state manager — clean transitions between menu, gameplay, pause, game-over
@@ -182,7 +182,7 @@ and a save file. Shippable as a `.exe`.
 | SDL2_image | PNG/JPG texture loading | [ ] Install via MSYS2 |
 | SDL2_ttf | TrueType font rendering | [ ] Install via MSYS2 |
 | VS Code + C/C++ extension | Editor with IntelliSense | [ ] Configure |
-| Unreal Engine 5 | Game engine (Phase 3) | [x] Installed |
+| Unreal Engine 5 | Game engine (Step0 3) | [x] Installed |
 | learncpp.com | C++ reference alongside projects | [ ] In progress |
 
 ---

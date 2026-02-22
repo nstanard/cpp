@@ -10,7 +10,7 @@ The `.gitignore` at the repo root excludes:
 | `*.obj` | Compiler object files |
 | `*.ilk` | MSVC incremental linker files |
 | `*.pdb` | Debug symbol databases |
-| `build/` | CMake build directories (e.g. `phase1/build/`) |
+| `build/` | CMake build directories (e.g. `step01/build/`) |
 | `.vscode/c_cpp_properties.json` | Machine-specific IntelliSense paths |
 
 `.vscode/tasks.json` is **tracked** — it defines shared build tasks worth committing.

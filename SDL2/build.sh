@@ -4,7 +4,7 @@
 # WHY THIS EXISTS:
 #   CMake requires 2-3 commands to build and run a project. This script wraps
 #   them behind single-letter flags so you don't retype the full commands every
-#   time. Each phase of the roadmap lives in its own folder with its own
+#   time. Each step0 of the roadmap lives in its own folder with its own
 #   CMakeLists.txt — pass the folder name as the first argument.
 #
 # Usage: ./build.sh <folder> [-g] [-c] [-r]
@@ -16,10 +16,10 @@
 #   -r  Run — executes the compiled game.exe from the build folder.
 #
 # Examples:
-#   ./build.sh phase1 -g          # generate only
-#   ./build.sh phase1 -c          # compile only
-#   ./build.sh phase1 -gcr        # generate, compile, and run
-#   ./build.sh phase1 -g -c -r    # same as above
+#   ./build.sh step01 -g          # generate only
+#   ./build.sh step01 -c          # compile only
+#   ./build.sh step01 -gcr        # generate, compile, and run
+#   ./build.sh step01 -g -c -r    # same as above
 
 FOLDER=$1
 shift
