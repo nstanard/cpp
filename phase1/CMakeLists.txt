@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.20)
+project(game)
+set(CMAKE_CXX_STANDARD 17)
+find_package(SDL2 REQUIRED)
+add_executable(game main.cpp)
+target_include_directories(game PRIVATE ${SDL2_INCLUDE_DIRS})
+target_link_libraries(game SDL2::SDL2main SDL2::SDL2)

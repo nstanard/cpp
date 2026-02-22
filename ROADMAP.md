@@ -1,110 +1,175 @@
 # C++ & Game Development Roadmap
 
-**Goal**: Learn C++ through the lens of video game development, leading toward Unreal Engine.
+**Goal**: Learn C++ through the lens of SDL2 game development, leading toward Unreal Engine.
 
-**Background**: 10+ years front-end/full-stack dev. Dabbled in C and Java in college. Strong programming fundamentals, new to compiled/systems languages.
+**Philosophy**: Every C++ concept is introduced in the context of building something real with SDL2.
+You always have a window. You always have a game loop. There are no abstract exercises disconnected
+from the goal.
 
----
-
-## Phase 1: C++ Fundamentals
-
-### Stage 1 — The Mental Model Shift
-> The concepts that feel most alien coming from JS/TypeScript/web dev.
-
-- [ ] Understand the compilation pipeline (source → object → executable)
-- [ ] Understand that there is no runtime, no garbage collector, no JIT
-- [ ] Stack vs heap memory — what lives where and why it matters
-- [ ] Why types are strict and what that buys you
-- [ ] Intro to pointers — the concept that trips up every web dev
-
-**Resources**
-- [learncpp.com — Chapter 0 & 1](https://www.learncpp.com/)
+**Background**: 10+ years front-end/full-stack dev. Dabbled in C and Java in college. Strong
+programming fundamentals, new to compiled/systems languages.
 
 ---
 
-### Stage 2 — Core Language Basics
-> The fundamentals. Most of this will feel familiar with some new syntax.
+## Phase 1: Setup & First Window
+> Get SDL2 running and understand what just happened.
 
-- [ ] Variables and primitive types (`int`, `float`, `double`, `char`, `bool`)
-- [ ] `const` and why it matters more than in JS
-- [ ] Functions — declaration vs definition, header files (`.h` / `.cpp` split)
-- [ ] Control flow (`if`, `for`, `while`, `switch`)
-- [ ] `std::string` and character arrays
-- [ ] Basic I/O with `std::cin` / `std::cout`
+- [X] Understand the compilation pipeline — source → object → executable
+- [X] Install MSYS2 and GCC for Windows
+- [X] Install SDL2 via MSYS2: `pacman -S mingw-w64-ucrt-x86_64-SDL2`
+- [X] Understand what a library is — all packaged libraries contain headers (`.h`), which are the contract (what exists), and compiled binaries (`.dll` / `.a`), which are the implementation (how it works). Pre-compiled so you don't rebuild the library every time. SDL2 is just a library for windowing, rendering, input, audio, and networking (via extensions) — the same concept, just a much larger one.
+- [ ] Link SDL2 to your project — the `-l` flag means "link this library." Every time you compile
+  you must pass `-lSDL2 -lSDL2main` or the linker won't find SDL2's code and you'll get "undefined
+  reference" errors. Full command: `g++ main.cpp -o game.exe -lSDL2 -lSDL2main`
+    To avoid retyping this every build, use one of these approaches (in order of complexity):
+    - Bash script — just the raw `g++` command in a `.sh` file. Run with `./build.sh`. No smarts.
+    - Makefile — a recipe file that defines named targets (e.g. `make build`, `make clean`).
+      Only recompiles files that changed since the last build. No install needed — `make` ships
+      with MSYS2. Still manual about what flags and files to include.
+    - CMake — a full build system generator. You describe your project at a high level
+      (`find_package`, `target_link_libraries`) and CMake figures out the flags, file tracking,
+      and generates the underlying Makefile or Ninja build for you. Handles dependencies,
+      multiple files, and cross-platform builds. Used by large C++ projects and Unreal Engine.
 
-**Resources**
-- [learncpp.com — Chapters 1–9](https://www.learncpp.com/)
+  **We are using CMake because it's harder to learn** — the same build system used by large C++ projects and Unreal Engine.
 
-**Mini Project**: Write a CLI program that takes user input and responds (text adventure room, simple quiz, etc.)
+  Setup (once):
+    1. Install CMake and Ninja via MSYS2:
+       `pacman -S mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja`
+    2. Create a `CMakeLists.txt` in your project root (tells CMake what to build and what to link)
+
+  Every build after that:
+    `cmake -B build -G Ninja`   ← generate build files into a build/ folder (once per project)
+    `cmake --build build`       ← compile
+    `./build/game.exe`          ← run
+
+  The `CMakeLists.txt` for an SDL2 project looks like:
+    ```
+    cmake_minimum_required(VERSION 3.20)
+    project(game)
+    set(CMAKE_CXX_STANDARD 17)
+    find_package(SDL2 REQUIRED)
+    add_executable(game main.cpp)
+    target_include_directories(game PRIVATE ${SDL2_INCLUDE_DIRS})
+    target_link_libraries(game SDL2::SDL2main SDL2::SDL2)
+    ```
+- [ ] Create a window with `SDL_CreateWindow` and `SDL_CreateRenderer`
+- [ ] The SDL2 init / quit lifecycle (`SDL_Init`, `SDL_Quit`)
+- [ ] Understand there is no runtime, no garbage collector — you own everything you create
+
+**Mini Project**: Fullscreen window that opens, shows a solid color, and closes cleanly on ESC.
+This is your Hello World. Every future project builds on this shell.
 
 ---
 
-### Stage 3 — Pointers & Memory Management
-> The hardest mental shift. Take your time here.
+## Phase 2: Core C++ in the Game Loop
+> The language fundamentals — learned by making the window do things.
 
-- [ ] What a pointer is and how to read pointer syntax (`int* p`, `*p`, `&x`)
-- [ ] References (`&`) vs pointers — when to use which
-- [ ] Dynamic allocation with `new` and `delete`
-- [ ] Memory leaks — what they are and how to cause/fix them
-- [ ] Modern smart pointers: `std::unique_ptr`, `std::shared_ptr`
-- [ ] RAII — the core C++ pattern for managing resource lifetimes
+- [ ] Variables and primitive types (`int`, `float`, `double`, `bool`, `Uint8`) — used as colors, sizes, flags
+- [ ] `const` — window dimensions, color values, speed constants that should never change
+- [ ] The game loop: poll events → update state → render — the heartbeat of every game
+- [ ] Control flow (`if`, `for`, `while`, `switch`) — for input handling and game logic
+- [ ] Functions — breaking the game loop into `handleInput()`, `update()`, `render()`
+- [ ] `std::string` and basic I/O (`std::cin` / `std::cout`) — for debug output and later menus
+- [ ] Keyboard and mouse input with `SDL_PollEvent`, `SDL_KEYDOWN`, `SDL_QUIT`
 
-**Resources**
-- [learncpp.com — Chapters 9, 11–12](https://www.learncpp.com/)
-
-**Mini Project**: Build a simple dynamic array or linked list by hand
+**Mini Project**: Fullscreen window where keyboard keys cycle through background colors,
+ESC quits. R=Red, G=Green, B=Blue, Space=White. Clean function separation.
 
 ---
 
-### Stage 4 — OOP in C++
-> You know OOP — learn how C++ does it differently.
+## Phase 3: Pointers & Memory — SDL2 Forces You to Learn This
+> SDL2 uses raw pointers everywhere. You can't avoid this.
+
+- [ ] What a pointer is — `SDL_Window*`, `SDL_Renderer*`, `SDL_Texture*` are all pointers
+- [ ] Pointer syntax: `int* p`, `*p` (dereference), `&x` (address-of)
+- [ ] References (`&`) vs pointers — when SDL2 wants one vs the other
+- [ ] `nullptr` — what it means when SDL returns null (failure / missing resource)
+- [ ] `new` and `delete` — manual heap allocation, and why SDL does this for you via its own allocator
+- [ ] Memory leaks — `SDL_DestroyWindow`, `SDL_DestroyRenderer`, `SDL_DestroyTexture` must be called
+- [ ] RAII — wrapping SDL resources in structs/classes so cleanup is automatic
+- [ ] Smart pointers: `std::unique_ptr` with a custom deleter for SDL resources
+
+**Mini Project**: Refactor the color-cycling window to use RAII wrappers for
+`SDL_Window` and `SDL_Renderer`. No raw cleanup calls in `main`.
+
+---
+
+## Phase 4: OOP — Building a Game Object System
+> You know OOP. Learn how C++ does it, and why it matters for games.
 
 - [ ] Classes: fields, methods, access specifiers (`public`, `private`, `protected`)
-- [ ] Constructors and destructors (no garbage collector = destructor matters)
+- [ ] Constructors and destructors — critical when objects own SDL resources
 - [ ] `this` pointer
-- [ ] Inheritance and `virtual` functions (runtime polymorphism)
-- [ ] Pure virtual functions and abstract classes (interfaces in C++)
-- [ ] Operator overloading basics
+- [ ] Inheritance and `virtual` functions — `Entity` base with `update()` and `render()` as virtual methods
+- [ ] Pure virtual functions and abstract classes — `Entity` is never instantiated directly
+- [ ] Operator overloading basics — `Vec2 + Vec2`, `Vec2 * float` for position math
 
-**Resources**
-- [learncpp.com — Chapters 13–17](https://www.learncpp.com/)
-
-**Mini Project**: Model a game entity system — `Entity` base class with `Player` and `Enemy` subclasses
+**Mini Project**: Entity system — abstract `Entity` base class with `Player` and `Enemy`
+subclasses. Each has position, renders a colored rectangle, and moves independently.
 
 ---
 
-### Stage 5 — Standard Library & Putting It Together
-> The tools you'll reach for constantly.
+## Phase 5: STL — Entities, Assets, and Save Files
+> The standard library tools you'll use in every project.
 
-- [ ] `std::vector` — the workhorse array
-- [ ] `std::map` and `std::unordered_map`
-- [ ] Iterators and range-based `for` loops
-- [ ] `std::optional`, `std::variant` (modern C++ patterns)
-- [ ] Lambdas and `std::function`
-- [ ] Basic file I/O
+- [ ] `std::vector` — a list of entities, a list of bullets, a list of rooms
+- [ ] `std::map` and `std::unordered_map` — keyed asset registry, input binding maps
+- [ ] Iterators and range-based `for` loops — iterating entities and cleaning up dead ones
+- [ ] `std::optional` — for nullable game state (current room, selected item, etc.)
+- [ ] `std::variant` — for game state machine (MenuState, PlayState, PauseState)
+- [ ] Lambdas and `std::function` — event callbacks, sort comparators
+- [ ] File I/O with `std::fstream` — save and load game data
 
-**Mini Project**: Build a game launcher that goes into a full-screen menu system. The menu includes a **New Game** option that prompts the user to enter a name via standard I/O, plus placeholders for Load Game and Quit. There will be no real game or graphics usage other than the menu system for this project. We will use this as a foundation for all other c++ or graphics mini projects.
-
----
-
-## Phase 2: Game Math & Pre-Engine Concepts
-> *Not started yet — will be detailed once Phase 1 is complete.*
-
-- Vectors and matrices (2D/3D math)
-- The game loop pattern
-- Delta time and frame independence
-- Basic collision concepts
+**Mini Project**: Full-screen game launcher with a proper SDL2 menu system (rendered text,
+keyboard navigation). New Game prompts for a player name (I/O), saves it to a file.
+Load Game reads it back. Quit exits. This becomes the shell for all future projects.
 
 ---
 
-## Phase 3: Unreal Engine C++
-> *Not started yet — will be detailed once Phase 2 is complete.*
+## Phase 6: 2D Rendering — Sprites, Text, and Animation
+> Making it look like a real game.
 
-- Unreal's build system and project structure
-- Blueprint vs C++ — when to use which
-- Actors, Components, the GameMode/GameState/PlayerController hierarchy
-- Unreal's coding conventions and macro system (`UCLASS`, `UPROPERTY`, etc.)
-- Interfacing C++ with Blueprints
+- [ ] Load images with `SDL_image` — PNG/JPG to `SDL_Texture*`
+- [ ] `SDL_Rect` — position, size, source/destination rectangles for rendering
+- [ ] Sprite sheets and frame animation — advancing frames with delta time
+- [ ] Render text with `SDL_ttf` — load a `.ttf` font, render strings to texture
+- [ ] Camera / viewport — separating world coordinates from screen coordinates
+- [ ] Draw order / z-ordering — background first, entities second, UI last
+
+**Mini Project**: Player sprite that walks (animated) around the screen. Camera follows.
+UI shows player name (loaded from save file) and position in screen corner.
+
+---
+
+## Phase 7: Game Math & Movement
+> The math behind every game mechanic.
+
+- [ ] 2D vectors — `Vec2` struct with position, velocity, direction
+- [ ] Euler integration — `position += velocity * deltaTime`
+- [ ] Delta time with `SDL_GetTicks64()` — frame-rate-independent movement
+- [ ] Basic trigonometry — angles, `sin`/`cos` for directional movement and aim
+- [ ] AABB collision detection — axis-aligned bounding box overlap test
+- [ ] Collision response — stop on contact, slide along walls
+
+**Mini Project**: Player moves with WASD, collides with static wall rectangles,
+can't pass through them. Velocity-based movement, fully delta-time independent.
+
+---
+
+## Phase 8: Game Architecture & Patterns
+> Structuring code that can grow without becoming spaghetti.
+
+- [ ] Scene / state manager — clean transitions between menu, gameplay, pause, game-over
+- [ ] Game object lifecycle — spawn, update, destroy with deferred cleanup
+- [ ] Simple component pattern — separating `PhysicsComponent`, `RenderComponent`, `InputComponent`
+- [ ] Asset manager — load once, reuse textures/fonts across scenes
+- [ ] Event system — decouple systems with a simple message bus
+- [ ] Basic UI system — buttons, labels, layout for menus and HUD
+
+**Mini Project**: A complete small 2D game — top-down or platformer — built on all prior
+projects. Menu → gameplay → win/lose → back to menu. Enemies, collectibles, a score,
+and a save file. Shippable as a `.exe`.
 
 ---
 
@@ -112,10 +177,13 @@
 
 | Tool | Purpose | Status |
 |------|---------|--------|
-| Visual Studio 2022 Community | IDE + MSVC compiler | [ ] Install |
-| VS Code + C/C++ extension | Lightweight editor option | [ ] Optional |
-| learncpp.com | Primary learning resource | [ ] In progress |
+| MSYS2 + MinGW-w64 | GCC compiler for Windows | [ ] Install |
+| SDL2 | Windowing, input, rendering | [ ] Install via MSYS2 |
+| SDL2_image | PNG/JPG texture loading | [ ] Install via MSYS2 |
+| SDL2_ttf | TrueType font rendering | [ ] Install via MSYS2 |
+| VS Code + C/C++ extension | Editor with IntelliSense | [ ] Configure |
 | Unreal Engine 5 | Game engine (Phase 3) | [x] Installed |
+| learncpp.com | C++ reference alongside projects | [ ] In progress |
 
 ---
 
@@ -123,4 +191,4 @@
 
 | Date | Notes |
 |------|-------|
-| — | Roadmap created |
+| 2026-02-21 | Roadmap created, roadmap rebuilt around SDL2 |
