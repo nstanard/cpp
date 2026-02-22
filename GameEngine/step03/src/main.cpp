@@ -37,7 +37,9 @@ int main() {
             glfwSetWindowShouldClose(window, true);
 
         renderer->BeginFrame();
-        // (scene rendering goes here in future steps)
+        
+        // TODO: Render a triangle
+
         renderer->EndFrame();
 
         glfwPollEvents();

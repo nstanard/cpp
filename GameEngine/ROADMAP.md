@@ -15,6 +15,6 @@
 
 ---
 
-## Step 3 (coming next): Draw a Triangle
+## Step 3: Draw a Triangle
 > The triangle is the GPU's Hello World. If you can draw one triangle, you understand
 > shaders, vertex buffers, and the GPU pipeline. Everything else is more of the same.

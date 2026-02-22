@@ -1,7 +1,7 @@
 # Step 1: Open a Window and Clear It to a Color
 
 This is the engine's "Hello World." Before any 3D, physics, or assets — you need a window
-with a working OpenGL context. That's it. That's the whole step.
+with a working context. In this case we are using OpenGL. That's it. That's the whole step. In future steps we will use DirectX and Vulkan.
 
 **What you'll use:**
 - **GLFW** — a small C library that opens a window and creates an OpenGL context for you.

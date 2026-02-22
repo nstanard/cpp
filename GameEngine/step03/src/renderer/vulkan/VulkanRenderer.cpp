@@ -4,6 +4,6 @@
 #include <iostream>
 
 bool VulkanRenderer::Init()       { std::cout << "[Vulkan] Init\n";       return true; }
-void VulkanRenderer::BeginFrame() { std::cout << "[Vulkan] BeginFrame\n";              }
-void VulkanRenderer::EndFrame()   { std::cout << "[Vulkan] EndFrame\n";                }
+void VulkanRenderer::BeginFrame() {              }
+void VulkanRenderer::EndFrame()   {                }
 void VulkanRenderer::Shutdown()   { std::cout << "[Vulkan] Shutdown\n";                }
