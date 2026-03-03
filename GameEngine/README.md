@@ -1,6 +1,6 @@
 # Game Engine — C++ from Scratch
 
-A 3D game engine built in C++, targeting PC first. One system at a time.
+Understanding how a person would build a 3D game engine built in C++, targeting PC first.
 
 ---
 
@@ -109,3 +109,5 @@ GameEngine/
   step04/              ← engine code becomes a consumable class by 1-N games
   ROADMAP.md
 ```
+
+Go to the ROADMAP.md file and complete each step.

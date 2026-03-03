@@ -1,5 +1,7 @@
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_win32.h>
 
 #include "renderer/vulkan/VulkanRenderer.h"
 #include "Mesh.h"
@@ -9,7 +11,7 @@
 #include <cstring>
 #include <vector>
 
-// ─── Inline shader source (mirrors DX12's inline HLSL) ───────────────────────
+// ─── Inline shader source ─────────────────────────────────────────────────────
 
 static const char* kVertGLSL = R"(
 #version 450
@@ -53,21 +55,23 @@ static std::vector<uint32_t> CompileGLSL(
 
 bool VulkanRenderer::Init(void* windowHandle) {
     std::cout << "[Vulkan] Initializing...\n";
-    GLFWwindow* window = static_cast<GLFWwindow*>(windowHandle);
+    HWND hwnd = static_cast<HWND>(windowHandle);
 
-    // Instance
+    // Instance — enable Win32 surface extension instead of the GLFW-provided list
     VkApplicationInfo appInfo{};
     appInfo.sType      = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.apiVersion = VK_API_VERSION_1_0;
 
-    uint32_t    glfwExtCount = 0;
-    const char** glfwExts   = glfwGetRequiredInstanceExtensions(&glfwExtCount);
+    const char* instanceExtensions[] = {
+        VK_KHR_SURFACE_EXTENSION_NAME,
+        VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+    };
 
     VkInstanceCreateInfo instanceCI{};
     instanceCI.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCI.pApplicationInfo        = &appInfo;
-    instanceCI.enabledExtensionCount   = glfwExtCount;
-    instanceCI.ppEnabledExtensionNames = glfwExts;
+    instanceCI.enabledExtensionCount   = 2;
+    instanceCI.ppEnabledExtensionNames = instanceExtensions;
 
 #ifdef _DEBUG
     const char* layers[] = { "VK_LAYER_KHRONOS_validation" };
@@ -80,9 +84,14 @@ bool VulkanRenderer::Init(void* windowHandle) {
         return false;
     }
 
-    // Surface
-    if (glfwCreateWindowSurface(m_instance, window, nullptr, &m_surface) != VK_SUCCESS) {
-        std::cerr << "[Vulkan] Failed to create window surface\n";
+    // Surface — Win32 native, no GLFW helper needed
+    VkWin32SurfaceCreateInfoKHR surfaceCI{};
+    surfaceCI.sType     = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+    surfaceCI.hinstance = GetModuleHandleW(nullptr);
+    surfaceCI.hwnd      = hwnd;
+
+    if (vkCreateWin32SurfaceKHR(m_instance, &surfaceCI, nullptr, &m_surface) != VK_SUCCESS) {
+        std::cerr << "[Vulkan] Failed to create Win32 surface\n";
         return false;
     }
 
@@ -146,7 +155,6 @@ bool VulkanRenderer::Init(void* windowHandle) {
     std::vector<VkSurfaceFormatKHR> surfaceFmts(fmtCount);
     vkGetPhysicalDeviceSurfaceFormatsKHR(m_physicalDevice, m_surface, &fmtCount, surfaceFmts.data());
 
-    // Prefer sRGB, fall back to whatever is first
     VkSurfaceFormatKHR chosenFmt = surfaceFmts[0];
     for (auto& f : surfaceFmts) {
         if (f.format == VK_FORMAT_B8G8R8A8_SRGB &&
@@ -176,7 +184,7 @@ bool VulkanRenderer::Init(void* windowHandle) {
     scCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     scCI.preTransform     = caps.currentTransform;
     scCI.compositeAlpha   = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    scCI.presentMode      = VK_PRESENT_MODE_FIFO_KHR;  // always available
+    scCI.presentMode      = VK_PRESENT_MODE_FIFO_KHR;
     scCI.clipped          = VK_TRUE;
 
     if (vkCreateSwapchainKHR(m_device, &scCI, nullptr, &m_swapchain) != VK_SUCCESS) {
@@ -247,7 +255,7 @@ bool VulkanRenderer::Init(void* windowHandle) {
         return false;
     }
 
-    // Shaders — compile GLSL to SPIR-V at runtime (mirrors DX12's D3DCompile)
+    // Shaders
     auto vertSPIRV = CompileGLSL(kVertGLSL, shaderc_glsl_vertex_shader,   "vert.glsl");
     auto fragSPIRV = CompileGLSL(kFragGLSL, shaderc_glsl_fragment_shader, "frag.glsl");
     if (vertSPIRV.empty() || fragSPIRV.empty()) return false;
@@ -265,7 +273,6 @@ bool VulkanRenderer::Init(void* windowHandle) {
     stages[1].module = fragMod;
     stages[1].pName  = "main";
 
-    // Vertex input — matches the Vertex struct layout (position[3], color[4])
     VkVertexInputBindingDescription binding{};
     binding.binding   = 0;
     binding.stride    = sizeof(Vertex);
@@ -274,11 +281,11 @@ bool VulkanRenderer::Init(void* windowHandle) {
     VkVertexInputAttributeDescription attrs[2]{};
     attrs[0].location = 0;
     attrs[0].binding  = 0;
-    attrs[0].format   = VK_FORMAT_R32G32B32_SFLOAT;     // position
+    attrs[0].format   = VK_FORMAT_R32G32B32_SFLOAT;
     attrs[0].offset   = offsetof(Vertex, position);
     attrs[1].location = 1;
     attrs[1].binding  = 0;
-    attrs[1].format   = VK_FORMAT_R32G32B32A32_SFLOAT;  // color
+    attrs[1].format   = VK_FORMAT_R32G32B32A32_SFLOAT;
     attrs[1].offset   = offsetof(Vertex, color);
 
     VkPipelineVertexInputStateCreateInfo vertexInput{};
@@ -292,7 +299,6 @@ bool VulkanRenderer::Init(void* windowHandle) {
     inputAssembly.sType    = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
-    // Viewport and scissor are set dynamically each frame
     VkPipelineViewportStateCreateInfo viewportState{};
     viewportState.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     viewportState.viewportCount = 1;
@@ -351,11 +357,10 @@ bool VulkanRenderer::Init(void* windowHandle) {
         return false;
     }
 
-    // Shader modules are baked into the pipeline — no longer needed
     vkDestroyShaderModule(m_device, vertMod, nullptr);
     vkDestroyShaderModule(m_device, fragMod, nullptr);
 
-    // Framebuffers — one per swap chain image
+    // Framebuffers
     m_framebuffers.resize(m_swapchainImageViews.size());
     for (size_t i = 0; i < m_swapchainImageViews.size(); i++) {
         VkFramebufferCreateInfo fbCI{};
@@ -372,7 +377,7 @@ bool VulkanRenderer::Init(void* windowHandle) {
         }
     }
 
-    // Command pool + command buffer
+    // Command pool + buffer
     VkCommandPoolCreateInfo poolCI{};
     poolCI.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolCI.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
@@ -392,7 +397,7 @@ bool VulkanRenderer::Init(void* windowHandle) {
         return false;
     }
 
-    // Vertex buffer — host-visible + coherent (no explicit flush needed)
+    // Vertex buffer
     const VkDeviceSize bufSize = sizeof(Vertex) * 1024;
 
     VkBufferCreateInfo bufCI{};
@@ -426,7 +431,7 @@ bool VulkanRenderer::Init(void* windowHandle) {
 
     VkFenceCreateInfo fenceCI{};
     fenceCI.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fenceCI.flags = VK_FENCE_CREATE_SIGNALED_BIT;  // start signaled so first frame doesn't hang
+    fenceCI.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     if (vkCreateSemaphore(m_device, &semCI,   nullptr, &m_imageAvailableSemaphore) != VK_SUCCESS ||
         vkCreateSemaphore(m_device, &semCI,   nullptr, &m_renderFinishedSemaphore) != VK_SUCCESS ||
@@ -442,7 +447,6 @@ bool VulkanRenderer::Init(void* windowHandle) {
 // ─── BeginFrame ───────────────────────────────────────────────────────────────
 
 void VulkanRenderer::BeginFrame() {
-    // Wait for the previous frame to finish, then reset the fence
     vkWaitForFences(m_device, 1, &m_inFlightFence, VK_TRUE, UINT64_MAX);
     vkResetFences(m_device, 1, &m_inFlightFence);
 
@@ -483,7 +487,6 @@ void VulkanRenderer::BeginFrame() {
 // ─── DrawMesh ─────────────────────────────────────────────────────────────────
 
 void VulkanRenderer::DrawMesh(const Mesh* mesh) {
-    // Upload vertex data directly — buffer is host-visible + coherent, no flush needed
     void* data = nullptr;
     vkMapMemory(m_device, m_vertexBufferMemory, 0,
                 sizeof(Vertex) * mesh->GetVertexCount(), 0, &data);

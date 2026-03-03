@@ -1,7 +1,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
-
-#include "renderer/IRenderer.h"
+#include "Engine.h"
+#include "Mesh.h"
 
 int main() {
     if (!glfwInit()) {
@@ -20,33 +20,38 @@ int main() {
         return 1;
     }
 
-    IRenderer* renderer = CreateRenderer();
-
-    // Stubs don't use the window handle yet.
-    // A real backend will receive the HWND / VkSurfaceKHR here.
-    if (!renderer->Init()) {
-        std::cerr << "Renderer Init() failed\n";
-        delete renderer;
+    // Create and initialize the engine
+    Engine engine;
+    if (!engine.Init(window)) {
+        std::cerr << "Engine initialization failed\n";
         glfwDestroyWindow(window);
         glfwTerminate();
         return 1;
     }
 
+    // --- Game / application code ---
+    // Define the triangle's geometry right here, like any game developer would.
+    // The engine knows nothing about "Triangle" — it just holds vertex data.
+    Vertex triangleVerts[] = {
+        { { 0.0f,  0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },  // top         — red
+        { { 0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },  // bottom-right — green
+        { {-0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },  // bottom-left  — blue
+    };
+    engine.GetScene()->AddMesh(new Mesh(triangleVerts, 3));
+    // --- End game code ---
+
+    // Main game loop
     while (!glfwWindowShouldClose(window)) {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
-        renderer->BeginFrame();
-        
-        // TODO: Render a triangle
-
-        renderer->EndFrame();
+        // Engine handles all rendering internally
+        engine.Update();
 
         glfwPollEvents();
     }
 
-    renderer->Shutdown();
-    delete renderer;
+    engine.Shutdown();
 
     glfwDestroyWindow(window);
     glfwTerminate();

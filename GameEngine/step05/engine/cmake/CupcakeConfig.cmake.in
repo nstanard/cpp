@@ -1,0 +1,16 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Renderer backend baked in at install time
+set(_cupcake_renderer "@RENDERER@")
+if(_cupcake_renderer STREQUAL "VULKAN")
+    find_dependency(Vulkan REQUIRED)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(shaderc REQUIRED IMPORTED_TARGET shaderc)
+elseif(_cupcake_renderer STREQUAL "DX12")
+    # DX12 uses Windows SDK system libs — no find_package needed
+endif()
+unset(_cupcake_renderer)
+
+include("${CMAKE_CURRENT_LIST_DIR}/CupcakeTargets.cmake")
